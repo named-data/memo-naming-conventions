@@ -1,0 +1,49 @@
+\documentclass[10pt]{article}
+\usepackage{times}
+\usepackage[verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in]{geometry}
+\linespread{1}
+\usepackage{graphics}
+\usepackage{subfigure}
+\usepackage{epsfig}
+\usepackage{hyperref}
+%\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{tabularx}
+\usepackage[belowskip=-15pt,aboveskip=6pt]{caption}
+
+\usepackage{enumitem}
+\setitemize{itemsep=0pt,topsep=3pt,parsep=0pt,partopsep=0pt}
+\setlength{\leftmargini}{20pt}
+ \setlength\parindent{0in}
+ \setlength\parskip{0.05in}
+
+\newcommand{\ie}{{\em i.e.}}
+\newcommand{\eg}{{\em e.g.}}
+\newcommand{\etal}{{\em et al.\mbox{$\:$}}}
+\newcommand{\etc}{{\em etc.}}
+
+\newcommand{\note}[1]{\vspace{2 mm}\par \noindent \marginpar{\textsc{Note}}
+\framebox{\begin{minipage}[c]{0.95 \textwidth}
+\tt #1 \end{minipage}}\vspace{5 mm}\par}
+
+\newcommand{\todo}[1]{\vspace{2 mm}\par \noindent \marginpar{\textsc{ToDo}}
+\framebox{\begin{minipage}[c]{0.95 \textwidth}
+\tt #1 \end{minipage}}\vspace{5 mm}\par}
+
+\begin{document}
+\title{NDN Naming Conventions}
+\author{NDN Project Team}
+\maketitle
+%\date{}
+
+\input{intro}
+
+\bibliographystyle{plain}
+\bibliography{ndn}
+
+\end{document}
+
+
+
+
+
+
