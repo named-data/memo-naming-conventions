@@ -7,7 +7,7 @@ all : ${PRJ}.pdf
 
 #${PRJ}.dvi : *.tex *.bib 
 #	latex ${PRJ}; bibtex ${PRJ}; latex ${PRJ}; latex ${PRJ}
-${PRJ}.pdf : *.tex *.bib 
+${PRJ}.pdf : *.tex ../ndn.bib
 	pdflatex ${PRJ} && (ls bu*.aux | xargs -n 1 bibtex) ; bibtex ${PRJ}.aux ; pdflatex ${PRJ} ; pdflatex ${PRJ} 
 
 #${PRJ}.ps : ${PRJ}.dvi
