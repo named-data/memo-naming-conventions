@@ -1,0 +1,134 @@
+\section{Extensible Command Markers (Marker C1)}
+
+\emph{Note: the \%C1 marker is mainly used in the old CCNx protocol implementation and is likely to be replaced in the future. This section is dumped from CCNx protocol specifications.}
+
+
+ The marker 0xC1 prefixes namespaces for commands, queries, or other special identifiers, all of which will be referred to as \emph{commands}
+ in the following description.
+
+
+ Commands consist of the marker 0xC1 followed by ``.'', followed by a namespace, which is a UTF-8 string possibly containing additional periods, followed by an operation name which is a UTF-8 string interpreted by the namespace owner in whatever manner they choose. Since a namespace may have one or more interior periods so it may be constructed using a reversed DNS name, as with Java conventions for collision-free class naming.
+
+
+ Optionally the operation name may be followed by UTF-8 arguments delimited by tilde characters (~).
+
+
+ The UTF-8 arguments, if any, may be followed by a single, optional, binary argument. A general binary argument is prefixed by the byte 0x00. A binary argument that is ccnb-encoded data is prefixed by the byte 0xC1.
+
+
+ Note that early versions of the command marker syntax did not use a separator character between the operation and/or final UTF-8 argument and the last binary argument (previously treated as a data field). This lead to an ambiguous encoding parsable only by elements that knew the specific argument structure of a particular command. It is possible to encounter legacy data of this form stored in older repositories.
+Example of General Command:
+\begin{verbatim}
+%C1.org.ccnx.frobnicate~1~37
+\end{verbatim}
+
+
+ would be a command in the namespace org.ccnx, where the operation is frobnicate, which takes two arguments, in this case given as 1 and 37.
+
+
+ Namespaces containing only capital letters are reserved for CCNx standard application protocols. The protocols defined so far are listed below:
+\subsubsection*{Repository Protocol (Namespace R)}
+
+
+ The repository protocol is used for clients to control repositories which are stores of CCNx content, usually persistent stores.
+\begin{description}
+\item[ Start Write Command ]
+
+ \%C1.R.sw - request repository to retrieve and store content. The prefix of the name before this start write command component must be the prefix of the content to be written. Following this there should be a nonce component. 
+
+\item[ Checked Start Write Command ]
+
+ \%C1.R.sw-c - similar to above, but the repository firsts checks for the presence of the stream and does not store it if it is already present. The repository responds in either case. Following the command component is a nonce component, a segment name component, and an explicit digest component, the last two identifying precisely the first (or only) segment of the stream to be stored. 
+
+
+\end{description}
+\subsubsection*{Nonce (Namespace N)}
+
+
+ The nonce namespace is used for marking random nonce values designed to make names unique.
+\begin{description}
+\item[ Nonce Command ]
+
+ \%C1.N\%00$<$noncevalue$>$ - where $<$noncevalue$>$ is the random (binary) nonce value. 
+\begin{verbatim}
+Early versions of this profile used an operation of 'n', and predated
+the binary argument separator, resulting in nonce commands of
+%C1.N.n<noncevalue>.
+\end{verbatim}
+
+
+\end{description}
+\subsubsection*{Name Enumeration (Namespace E)}
+
+
+ The Name Enumeration Protocol is used to query for names of available content without retrieving the content itself.
+\begin{description}
+\item[ Basic Enumeration Command ]
+
+ \%C1.E.be - request first level names under the prefix of this command, much like a single-level directory listing command. 
+
+
+\end{description}
+\subsection*{Marker (Namespace M)}
+
+
+ The Marker namespace identifies name components meant to be parsed by programs, rather than people. They may contain additional components that allow them to be identified and parsed. They usually do not have command namespaces of their own because they are not operations, and do not have subcommands; but they are marked so that they can be easily filtered out from displays shown to the user and do not encounter accidental collisions with application names.
+
+
+ Marker namespaces in common use:
+\subsubsection*{Guid name components:}
+
+
+ These are used to specify fixed random binary name components, which are used repeatedly over time, rather than nonces.
+\begin{verbatim}
+%C1.M.G%00<guid value>
+\end{verbatim}
+\subsubsection*{Key ID name components:}
+
+
+ These refer to a particular public key by its digest (currently SHA256). Equivalent to PublisherPublicKeyDigest, and the PublisherID included in the SignedInfo of each ContentObject.
+\begin{verbatim}
+%C1.M.K%00<key id value>
+\end{verbatim}
+\subsubsection*{Access control marker:}
+
+
+ Content relating to access control for a given namespace node is stored below this marker component.
+\begin{verbatim}
+%C1.M.ACCESS
+\end{verbatim}
+\subsubsection*{Scoped name:}
+
+
+ This is used as the first component of a namespace that is restricted to the local machine.
+\begin{verbatim}
+%C1.M.S.localhost
+\end{verbatim}
+
+
+ Similarly, ‘\%C1.M.S.neighorhood’ may be used as the first component of a namespace that is meant for our host and those directly connected. Note that, unlike ‘\%C1.M.S.localhost’, this not rigorously enforced at present.
+\begin{verbatim}
+%C1.M.S.neighorhood
+\end{verbatim}
+\subsubsection*{Service discovery:}
+
+
+ This is used to denote a portion of the name tree used for service discovery.
+\begin{verbatim}
+%C1.M.SRV
+\end{verbatim}
+
+
+ For example /\%C1.M.S.localhost/\%C1.M.SRV/ccnd/KEY will get the local ccnd’s public key. Similarly for other services.
+\subsection*{Metadata}
+
+
+ Meta-data content about files — headers, thumbnails, tags, and so on — is named in a subcollection of the file version named using the metadata namespace marker.
+\begin{verbatim}
+%C1.META
+\end{verbatim}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "convention"
+%%% End: 

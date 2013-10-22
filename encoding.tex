@@ -1,0 +1,31 @@
+\section{Name Component Encoding}
+
+In the wire format, name components are encoded as pure byte strings encapsulated in TLV-style headers and therefore it is possible to put any byte value in the component. However, NDN naming convention encourages the use of human-readable clear-text strings as name components, which resembles the file system naming scheme. UTF-8 encoding scheme is used to convert human-readable strings into byte representation in the packet. This allows accommodation to multiple languages in an internationalized environment.
+
+For example, the name \url{/ndn/ucla.edu/bms/melnitz/data/1451/electrical/aggregate/power/instant} used in NDN Building Management System encodes the building name and sensor data type in clear text, which is intuitive and straightforward for the application end-users, in this case, the building managers.
+
+The following list shows several cases where human-readable names are not feasible.
+
+\begin{itemize}
+\item Component encodes cryptographic subjects such as a message digest. For example,
+
+\begin{center}
+\url{/ndn/keys/ucla.edu/apps/\%C1.M.K\%00\%C3...\%BC\%16}
+\end{center}
+
+\item Component encodes embedded NDN packet. For example,
+
+\begin{center}
+\url{/ndnx/\%00\%88...\%DB\%AF/selfreg/\%04\%82...<embedded-data-packet>}
+\end{center}
+
+\item Component encodes version and segment numbers with special markers, which is described later.
+\end{itemize}
+
+In those cases, the component will contain non-ASCII bytes and the URI representation will escape those bytes using ``percent-encoding'', i.e., a `\%' followed by two hex characters indicating the value of the byte.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "convention"
+%%% End: 

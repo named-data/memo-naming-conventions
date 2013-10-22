@@ -1,0 +1,13 @@
+\section{Special Markers}
+
+In a variety of situations, name components need to represent commands or annotations that can appear at arbitrary levels in the name hierarchy, intermixed with the human readable components that are analogous to pieces of file names. In these cases, the position in the name is not able to distinguish the component’s role and hence we rely on coding conventions in the component itself. Wherever possible, however, the function or meaning of a name component should be determined by its context within the overall name and under the specific application semantics. And human readable components should be used where they will not be mistaken for functional name components.
+
+The specification of UTF-8 prohibits certain octet values from occurring anywhere in a UTF-8 encoded string. These are the (hex) octet values C0, C1, and F5 to FF. In addition, the null octet 00 is used for string termination and so does not encode a usable character. Thus these make good \emph{markers} to identify components of a NDN name that play special functional roles such as for versioning and segment numbering. In the current convention, a functional name component is constructed using a \emph{marker octet} from the UTF-8 prohibited set as the first octet, followed by additional octets according to the conventions for that marker. 
+
+The following sections introduce some naming conventions that assign the prohibited octet values to specific functions. Note that the meaning of the special markers are application-layer information. From the router's perspective these functional components are no different from other name components. Also, the semantics of the special markers is a contract between the producer and the consumer of a specific application. The meaning of one marker may change across different applications.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "convention"
+%%% End: 

@@ -1,0 +1,11 @@
+\section{Data Segmenting}
+
+Segmenting is used when the application wants to cut large data into small pieces. The segment number is usually placed as the last name component (not counting the implicit digest component). Existing convention used by NDNx Repo is to encode the segment number with special markers: \%00 for consecutive sequencing and \%FB for non-consecutive sequencing. Note that segment zero is encoded as \%00 rather than \%00\%00. Applications should follow this convention if they want interaction with repos.
+
+Applications with special design or requirement may define their own encoding format and/or semantics for segment component.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "convention"
+%%% End: 

@@ -1,0 +1,31 @@
+\section{General Naming Structure}
+
+NDN names are usually constructed by concatenating the routing prefix, application label and application-specific suffix. The routing prefix allows the Interest to be forwarded to the data producer; the application label indicates which application the request goes to (in case the producer runs several applications in its own namespace); finally, the rest of the name contains information that can be interpreted under the semantics of the specific application.
+
+The combination of routing prefix and application label is analogous to the ``IP address + port number'' pair in TCP/IP architecture, which serves the purpose of service demultiplexing. However, unlike TCP/IP, NDN does not require the routing prefix to be globally unique. When there are multiple producers for the same namespace, the routing infrastructure will deliver the Interests to one of (or some of) these producers according to the forwarding strategy.
+
+Some of the examples that follow this naming strategy are:
+
+\[
+\underbrace{\texttt{/ndn/ucla.edu/irl/alice}}_\text{routing prefix}
+\underbrace{\texttt{/ndnfs}}_\text{app label}
+\underbrace{\texttt{/documents/NamingConvention.pdf}}_\text{app info}
+\]
+
+\[
+\underbrace{\texttt{/ndn/broadcast}}_\text{routing prefix}
+\underbrace{\texttt{/ChronoChat-0.3}}_\text{app label}
+\underbrace{\texttt{/chatroom007/1107d547...d6da}}_\text{app info}
+\]
+
+\[
+\underbrace{\texttt{/ndn/ucla.edu/irl}}_\text{routing prefix}
+\underbrace{\texttt{/DNS}}_\text{app label}
+\underbrace{\texttt{/www/NS}}_\text{app info}
+\]
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "convention"
+%%% End: 
