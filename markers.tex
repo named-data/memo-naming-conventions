@@ -60,7 +60,11 @@ In the future, we plan to extend the naming conventions and encoding methods to 
 \subsection{Segmenting}
 \label{sec:segmenting}
 
-Segmenting is used when the application wants to cut a large data into small pieces.
+Segmenting is used when a large data is cut into several pieces.
+Each individual segment is assigned its own unique name and can be individually retrieved.
+Although not defined in this document, applications should strive to define segmentation in the way that makes possible to process individual segments on their own, without requiring waiting until the whole data is assembled.
+For example, a large video frame could be split into segments, each individually contributing complete pieces of the frame encoding.
+
 For segmenting purposes, we define two special markers (see Table~\ref{tab:segmenting}): \verb|0x00| for sequence-based segmentation and \verb|0xFB| for byte offset segmentation.
 When sequence-based segmentation is used, each segmented Data packet should be assigned a sequential segment number, starting from 0: 0, 1, 2, ...
 When byte-offset segmentation is used, each segmented Data packet should be assigned a byte offset of the segmented content: 0, (content size in first Data packet), (sum of content sizes in first two Data packets), ...
@@ -84,15 +88,19 @@ The segment number is recommended to be put as the last name component, not incl
 \subsection{Versioning}
 \label{sec:version}
 
-Versioning is necessary if the application wants to update previously published data and publish again under the same name.
-Since NDN mandates every data packet to have a unique name, a version component must be added to allow unambiguous naming for different versions of the data.
+In NDN, all Data packets are immutable and cannot be changed after being published.
+Therefore, when an applications needs to publish a ``new'' version of the data, it should be published under a new unique name using a proper versioning protocol.
+The main goal and property of the versioning protocol is to explicitly define the name-based ordering of Data versions: the ``larger'' is the name (in NDN-TLV canonical ordering~\cite{ndn-tlv}), the ``newer'' is the version of the Data.%
+\footnote{Without the use of versioning protocol, the implicit digest name component still makes all Data packets unique, but it is impossible to determine based on the name which version is ``newer''.}
 
-The current convention define use of \verb|0xFD| marker for versioning (Table~\ref{tab:versioning}).
-The following value should represent number of milliseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
+The current convention define use of \verb|0xFD| marker for time-based versioning (Table~\ref{tab:versioning}).
+Version in this protocol is represented as the number of milliseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
+If the application wants to use a non-time-based versioning, another marker should be used.%
+\footnote{Future revisions of this document may include additional recommendations and conventions regarding uses of non-time-base versioning.}
 
-One of the main reasons to recommend timestamp as a value for the version is the ultimate goal for the version component be numerically larger for the ``latest'' version.
-Timestamp provides a relative easy way to achieve this goal for single or multi-producer applications, assuming the producer will take care of properly synchronizing their clocks.
-If clock synchronization is not feasible for a distributed application, this application must make all attempts in some other way to ensure version property.
+One of the main reasons to recommend timestamp as a value for the version is simplicity to achieve the main goal in many environments, i.e., to ensure that the version component is ``larger'' for the ``latest'' version.
+Assuming data producers will take care of properly synchronizing their clocks, it is trivial to assign the correct version number in any multi-producer application without the need of introducing any version synchronization protocols.
+If the clock synchronization is not feasible, the application should use non-time-based versioning and/or make all attempts to ensure versioning property in some other way.
 Otherwise, the use of the defined versioning marker may harm the application, as third-parties may incorrectly treat Data packet with the ``largest'' version as the ``latest'' (e.g., prioritize caching of it).
 
 \begin{table}[h!]
@@ -112,12 +120,17 @@ Otherwise, the use of the defined versioning marker may harm the application, as
 \subsubsection{Sequencing}
 \label{sec:sequencing}
 
-Sequencing data collections is another common feature in many applications.
+Sequential data collections is another common feature in many NDN applications.
 Named Data Networking daemon (NFD)~\cite{nfd} uses such collections as part of the face status notification protocol; ChronoSync~\cite{ChronoSync} protocol provide efficient synchronization primitives for sequenced data collections.
-While the sequence number value in these collections is syntactically similar to sequence-based segmentation, the sequence number has a very different meaning.
-Third parties (e.g, ContentStore) that can understand this difference, may provide better help with data retrieval for the applications properly using segmentation and sequencing conventions.
+Each item in these collections is numbered using monotonically increasing non-negative integer starting from zero.
+Collection items should be complete application-specific data items with or without application dependency on other collection items.
 
-Naming convention for sequence is defined in Table~\ref{tab:sequencing}: marker \verb|0xFE| followed by the sequence number of the Data packet in the dataset.
+The following property, that can be leveraged by third-party applications, should hold for the items in the sequential data collections.
+If it is known that there exists a collection item with the sequence number $X$, then it is implied that items $0, 1, \ldots (X-1)$ has been already produced and item $(X+1)$ exists or could be produced in the future.
+(Note that this property does not require or guarantee that all ``previous'' items can be retrieved.)
+
+Naming convention for sequence is defined in Table~\ref{tab:sequencing}: marker \verb|0xFE| followed by the sequence number (monotonically increasing non-negative integer) of the data item in the dataset.
+Each data item is either an individual Data packet or a collection of multiple segmented Data packets.
 
 \begin{table}[h!]
   \centering
