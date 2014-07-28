@@ -17,7 +17,7 @@ For example, when the segmenting convention is properly used by the application,
 Further discussion about the specific properties and advantages that naming conventions, defining semantics of the name component(s), bring to the applications is outside the scope of this document.
 However, it is an active discussion within NDN project team and beyond.
 
-\subsubsection{Marker and Value Encoding}
+\subsection{Marker and Value Encoding}
 \label{sec:marker-encoding}
 
 In the current convention, a functional name component is constructed using a \emph{marker octet} from the UTF-8 prohibited set as the first octet, followed by the value in the following format based on non-negative integer encoding of NDN-TLV~\cite{ndn-tlv}:
@@ -27,9 +27,9 @@ In the current convention, a functional name component is constructed using a \e
 \begin{minipage}[c]{0.5\textwidth}
 \begin{verbatim}
 
-    NameComponentWithMarker ::= NAME-COMPONENT-TYPE TLV-LEGTH
-                                  Marker
-                                  includedNonNegativeInteger
+    NameComponentWithMarkerAndNumber ::= NAME-COMPONENT-TYPE TLV-LEGTH
+                                           Marker
+                                           includedNonNegativeInteger
 
     Marker ::= BYTE
 
@@ -45,7 +45,7 @@ In the current convention, a functional name component is constructed using a \e
 
 The only difference between \texttt{includedNonNegativeInteger} and \texttt{nonNegativeInteger} defined in NDN-TLV spec~\cite{ndn-tlv} is the way the size of the stored non-negative integer is calculated.
 More specifically, length value of the TLV element containing \texttt{includedNonNegativeInteger} MUST be either 1, 2, 4, or 8 PLUS size of the prefixed elements.
-For \texttt{NameComponentWithMarker}, given that prefix is always a marker with size 1, the only values allowed values fro TLV-LENGTH are: 2, 3, 5, and 9.
+For \texttt{NameComponentWithMarkerAndNumber}, given that prefix is always a marker with size 1, the only values allowed values fro TLV-LENGTH are: 2, 3, 5, and 9.
 
 Depending on the length MINUS size of the prefixed elements, a \texttt{includedNonNegativeInteger} is encoded as follows:
 \begin{itemize}
@@ -65,7 +65,7 @@ Each individual segment is assigned its own unique name and can be individually 
 Although not defined in this document, applications should strive to define segmentation in the way that makes possible to process individual segments on their own, without requiring waiting until the whole data is assembled.
 For example, a large video frame could be split into segments, each individually contributing complete pieces of the frame encoding.
 
-For segmenting purposes, we define two special markers (see Table~\ref{tab:segmenting}): \verb|0x00| for sequence-based segmentation and \verb|0xFB| for byte offset segmentation.
+For segmenting purposes, we define use of \texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) name component and two special markers (see Table~\ref{tab:segmenting}): \verb|0x00| for sequence-based segmentation and \verb|0xFB| for byte offset segmentation.
 When sequence-based segmentation is used, each segmented Data packet should be assigned a sequential segment number, starting from 0: 0, 1, 2, ...
 When byte-offset segmentation is used, each segmented Data packet should be assigned a byte offset of the segmented content: 0, (content size in first Data packet), (sum of content sizes in first two Data packets), ...
 
@@ -92,16 +92,16 @@ In NDN, all Data packets are immutable and cannot be changed after being publish
 Therefore, when an applications needs to publish a ``new'' version of the data, it should be published under a new unique name using a proper versioning protocol.
 The main goal and property of the versioning protocol is to explicitly define the name-based ordering of Data versions: the ``larger'' is the name (in NDN-TLV canonical ordering~\cite{ndn-tlv}), the ``newer'' is the version of the Data.%
 \footnote{Without the use of versioning protocol, the implicit digest name component still makes all Data packets unique, but it is impossible to determine based on the name which version is ``newer''.}
+This property can be used by third-parties, e.g., to prioritize caching of the latest versions of data.
 
-The current convention define use of \verb|0xFD| marker for time-based versioning (Table~\ref{tab:versioning}).
-Version in this protocol is represented as the number of milliseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
-If the application wants to use a non-time-based versioning, another marker should be used.%
-\footnote{Future revisions of this document may include additional recommendations and conventions regarding uses of non-time-base versioning.}
+The current convention define use of \texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) and \verb|0xFD| marker to identify version name component (Table~\ref{tab:versioning}).
+The specific value for the version is determined by the applications and it is responsibility of the application to ensure that the larger value is assigned to the later version of the Data.
 
-One of the main reasons to recommend timestamp as a value for the version is simplicity to achieve the main goal in many environments, i.e., to ensure that the version component is ``larger'' for the ``latest'' version.
+A simple way to implement version property in many environments is to use timestamp (the number of milliseconds since UNIX epoch) as a version value.
 Assuming data producers will take care of properly synchronizing their clocks, it is trivial to assign the correct version number in any multi-producer application without the need of introducing any version synchronization protocols.
 If the clock synchronization is not feasible, the application should use non-time-based versioning and/or make all attempts to ensure versioning property in some other way.
-Otherwise, the use of the defined versioning marker may harm the application, as third-parties may incorrectly treat Data packet with the ``largest'' version as the ``latest'' (e.g., prioritize caching of it).
+Otherwise, the use of the defined versioning marker may harm the application, as third-parties may incorrectly treat Data packet with the ``largest'' version as the ``latest'' (e.g., incorrectly prioritize caching of older version).
+
 
 \begin{table}[h!]
   \centering
@@ -111,7 +111,30 @@ Otherwise, the use of the defined versioning marker may harm the application, as
     \hline
     Marker & Value meaning \\
     \hline \hline
-    \verb|0xFD| & Number of milliseconds since UNIX epoch \\
+    \verb|0xFD| & Non-negative integer (larger value for later version) \\
+    \hline
+  \end{tabular}
+\end{table}
+
+
+\subsection{Time stamping}
+\label{sec:timestamp}
+
+Some NDN applications may need to explicitly define when specific Data packet was produced.
+Even without synchronized clocks, this value can be used by third-parties to infer difference between generation of the Data packets by the same producer, and this knowledge cane be used in some way (e.g., caches that try to keep time-diverse Data packets/measurements).
+
+\texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) and the marker \verb|0xFC| should be used when adding timestamp to the name (Table~\ref{tab:timestamp}).
+The following value should be the number of milliseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
+
+\begin{table}[h!]
+  \centering
+  \caption{Timestamp marker}
+  \label{tab:timestamp}
+  \begin{tabular}{|l|l|l|}
+    \hline
+    Marker & Value meaning \\
+    \hline \hline
+    \verb|0xFC| & Number of milliseconds since UNIX epoch \\
     \hline
   \end{tabular}
 \end{table}
@@ -129,7 +152,7 @@ The following property, that can be leveraged by third-party applications, shoul
 If it is known that there exists a collection item with the sequence number $X$, then it is implied that items $0, 1, \ldots (X-1)$ has been already produced and item $(X+1)$ exists or could be produced in the future.
 (Note that this property does not require or guarantee that all ``previous'' items can be retrieved.)
 
-Naming convention for sequence is defined in Table~\ref{tab:sequencing}: marker \verb|0xFE| followed by the sequence number (monotonically increasing non-negative integer) of the data item in the dataset.
+Sequence number should be encoded as \texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) name component with marker \verb|0xFE| followed by the sequence number (monotonically increasing non-negative integer) of the data item in the dataset (Table~\ref{tab:sequencing}).
 Each data item is either an individual Data packet or a collection of multiple segmented Data packets.
 
 \begin{table}[h!]
