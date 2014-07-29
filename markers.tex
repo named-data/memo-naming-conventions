@@ -97,7 +97,7 @@ This property can be used by third-parties, e.g., to prioritize caching of the l
 The current convention define use of \texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) and \verb|0xFD| marker to identify version name component (Table~\ref{tab:versioning}).
 The specific value for the version is determined by the applications and it is responsibility of the application to ensure that the larger value is assigned to the later version of the Data.
 
-A simple way to implement version property in many environments is to use timestamp (the number of milliseconds since UNIX epoch) as a version value.
+A simple way to implement version property in many environments is to use timestamp (the number of micro- or milliseconds since UNIX epoch) as a version value.
 Assuming data producers will take care of properly synchronizing their clocks, it is trivial to assign the correct version number in any multi-producer application without the need of introducing any version synchronization protocols.
 If the clock synchronization is not feasible, the application should use non-time-based versioning and/or make all attempts to ensure versioning property in some other way.
 Otherwise, the use of the defined versioning marker may harm the application, as third-parties may incorrectly treat Data packet with the ``largest'' version as the ``latest'' (e.g., incorrectly prioritize caching of older version).
@@ -121,10 +121,10 @@ Otherwise, the use of the defined versioning marker may harm the application, as
 \label{sec:timestamp}
 
 Some NDN applications may need to explicitly define when specific Data packet was produced.
-Even without synchronized clocks, this value can be used by third-parties to infer difference between generation of the Data packets by the same producer, and this knowledge cane be used in some way (e.g., caches that try to keep time-diverse Data packets/measurements).
+Even without synchronized clocks, this value can be used by third-parties to infer difference between generation of the Data packets by the same producer, and this knowledge can be used in some way (e.g., caches that try to keep time-diverse Data packets/measurements).
 
 \texttt{NameComponentWithMarkerAndNumber} (Section~\ref{sec:marker-encoding}) and the marker \verb|0xFC| should be used when adding timestamp to the name (Table~\ref{tab:timestamp}).
-The following value should be the number of milliseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
+The following value should be the number of microseconds since UNIX epoch (Thursday, 1 January 1970) not counting leap seconds, generated from the system clock to indicate the creation time of the Data.
 
 \begin{table}[h!]
   \centering
@@ -134,13 +134,13 @@ The following value should be the number of milliseconds since UNIX epoch (Thurs
     \hline
     Marker & Value meaning \\
     \hline \hline
-    \verb|0xFC| & Number of milliseconds since UNIX epoch \\
+    \verb|0xFC| & Number of microseconds since UNIX epoch \\
     \hline
   \end{tabular}
 \end{table}
 
 
-\subsubsection{Sequencing}
+\subsection{Sequencing}
 \label{sec:sequencing}
 
 Sequential data collections is another common feature in many NDN applications.
